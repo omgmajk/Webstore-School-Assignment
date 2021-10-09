@@ -1,0 +1,980 @@
+{
+	"info": {
+		"_postman_id": "5f205327-1415-4433-9a14-682d72632ff7",
+		"name": "Test WebStore",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "delete all stock",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test that request was okay\r",
+							"pm.test(\"Expect delete to take\", () => {\r",
+							"    pm.expect(pm.response.status).to.equal(\"OK\");\r",
+							"});\r",
+							"\r",
+							"// We do this in order to not have FK's to worry about for now."
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/api/stock",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"stock"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get all current stores",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Get response json obj\r",
+							"let arr = pm.response.json();\r",
+							"// Remove all id's\r",
+							"arr.forEach(x => { delete x.id });\r",
+							"// Keep the data to put back\r",
+							"pm.environment.set(\"storesData\", JSON.stringify(arr));\r",
+							"// Set a counter so we can loop\r",
+							"pm.environment.set(\"counter\", \"0\");\r",
+							"\r",
+							"pm.test(\"Content type is json with utf-8 encoding\", () => {\r",
+							"  pm.expect(pm.response.headers.get(\"Content-Type\")).to.eql(\"application/json; charset=utf-8\");\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/api/stores",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"stores"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete all stores",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test that request was okay\r",
+							"pm.test(\"Expect delete to take\", () => {\r",
+							"    pm.expect(pm.response.status).to.equal(\"OK\");\r",
+							"});\r",
+							"\r",
+							"// Debug: See if we keep the data\r",
+							"let storesData = JSON.parse(pm.environment.get(\"storesData\"));\r",
+							"console.log(storesData);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/api/stores",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"stores"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create new stores",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Unpack env variables\r",
+							"let storesData = JSON.parse(pm.environment.get(\"storesData\"));\r",
+							"let counter = +pm.environment.get(\"counter\");\r",
+							"\r",
+							"// Set env vars for body\r",
+							"let storeToAdd = storesData[counter];\r",
+							"for(let key in storeToAdd) {\r",
+							"    let val = storeToAdd[key];\r",
+							"    pm.environment.set(key, val);\r",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Unpack env\r",
+							"let storesData = JSON.parse(pm.environment.get(\"storesData\"));\r",
+							"let counter = +pm.environment.get(\"counter\");\r",
+							"\r",
+							"// Get response\r",
+							"let response = pm.response.json();\r",
+							"\r",
+							"// Check that we get the correct response\r",
+							"pm.test(\"Check that one change happened\", () => {\r",
+							"    pm.expect(response.changes).to.equal(1);\r",
+							"});\r",
+							"// Check for the right status code\r",
+							"pm.test(\"Check if POST was successful\", () => {\r",
+							"  pm.expect(pm.response.code).to.be.oneOf([200,201,202]);\r",
+							"});\r",
+							"pm.test(\"Check if we have an id to work with\", () => {\r",
+							"    pm.expect(response.lastInsertRowid).to.be.a(\"number\");\r",
+							"});\r",
+							"\r",
+							"// Save id of the last store created\r",
+							"storesData[counter].id = response.lastInsertRowid;\r",
+							"\r",
+							"// Increment\r",
+							"counter++;\r",
+							"\r",
+							"// Reset the env vars\r",
+							"pm.environment.set(\"storesData\", JSON.stringify(storesData));\r",
+							"pm.environment.set(\"counter\", counter);\r",
+							"\r",
+							"// Loop until we are out of stores in the data\r",
+							"if(storesData[counter]){\r",
+							"    postman.setNextRequest(\"create new stores\");\r",
+							"}\r",
+							"// Else we just set counter to zero to re-use it later\r",
+							"else {\r",
+							"    pm.environment.set(\"counter\", 0);\r",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"store_name\" : \"{{store_name}}\",\r\n    \"store_address\" : \"{{store_address}}\",\r\n    \"store_postal_code\" : \"{{store_postal_code}}\",\r\n    \"store_city\" : \"{{store_city}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/stores",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"stores"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get single store and test equality",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Unpack env\r",
+							"let storesData = JSON.parse(pm.environment.get(\"storesData\"));\r",
+							"let counter = +pm.environment.get(\"counter\");\r",
+							"\r",
+							"// Pick out store\r",
+							"let storeToGet = storesData[counter];\r",
+							"\r",
+							"// Set the id of the store as an env variable to be used for the api\r",
+							"pm.environment.set(\"id\", storeToGet.id);"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Unpack env\r",
+							"let storesData = JSON.parse(pm.environment.get(\"storesData\"));\r",
+							"let counter = +pm.environment.get(\"counter\");\r",
+							"\r",
+							"// Store\r",
+							"let storeToGet = storesData[counter];\r",
+							"\r",
+							"// Get response\r",
+							"let response = pm.response.json();\r",
+							"\r",
+							"// Test db vs our stored data\r",
+							"pm.test(\"Store with id: \" + storeToGet.id + \" is OK\", () => {\r",
+							"    pm.expect(response).to.deep.equal(storeToGet);\r",
+							"});\r",
+							"\r",
+							"// Increment\r",
+							"counter++;\r",
+							"pm.environment.set(\"counter\", counter);\r",
+							"\r",
+							"// Loop until we are out of stores\r",
+							"if(storesData[counter]) {\r",
+							"    postman.setNextRequest(\"get single store and test equality\");\r",
+							"}\r",
+							"else {\r",
+							"    pm.environment.set(\"counter\", 0);\r",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/api/stores/{{id}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"stores",
+						"{{id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get all stores and test equality",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Unpack\r",
+							"let storesData = JSON.parse(pm.environment.get(\"storesData\"));\r",
+							"\r",
+							"// Get the response\r",
+							"let response = pm.response.json();\r",
+							"\r",
+							"// Compare the response with the data we have\r",
+							"pm.test(\"Get a list of all stores, test if it's equal to db\", () => {\r",
+							"    pm.expect(response).to.deep.equal(storesData);\r",
+							"});\r",
+							"\r",
+							"// Passing on data from get\r",
+							"// Making new environment data\r",
+							"pm.environment.set(\"allStores\", JSON.stringify(response));"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/api/stores",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"stores"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "edit random store",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Unpack new data\r",
+							"let allStores = JSON.parse(pm.environment.get(\"allStores\"));\r",
+							"// Pick out a random store to change\r",
+							"let storeToChange = allStores[Math.floor(Math.random() * allStores.length)];\r",
+							"// Set environment vars\r",
+							"pm.environment.set(\"idToChange\", storeToChange.id);\r",
+							"\r",
+							"// Generate noise\r",
+							"let gibberish = [...Array(30)].map(x => (~~(Math.random()*36)).toString(36)).join(\"\");\r",
+							"pm.environment.set(\"store_name\", gibberish);\r",
+							"gibberish = [...Array(30)].map(x => (~~(Math.random()*36)).toString(36)).join(\"\");\r",
+							"pm.environment.set(\"store_address\", gibberish);\r",
+							"gibberish = [...Array(30)].map(x => (~~(Math.random()*36)).toString(36)).join(\"\");\r",
+							"pm.environment.set(\"store_city\", gibberish);\r",
+							"let gibberishPostal = Math.floor(Math.random()*90000) + 10000;\r",
+							"pm.environment.set(\"store_postal_code\", gibberishPostal);"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Get back name\r",
+							"let changedName = pm.environment.get(\"store_name\");\r",
+							"\r",
+							"// Response we got\r",
+							"let response = pm.response.json();\r",
+							"let idToChange = pm.environment.get(\"idToChange\");\r",
+							"\r",
+							"// Test with expect\r",
+							"pm.test(\"Expect changes to be equal to one\", () => {\r",
+							"    pm.expect(response.changes).to.equal(1);\r",
+							"});\r",
+							"\r",
+							"// Keep the store name for next test\r",
+							"pm.environment.set(\"changedName\", changedName);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"store_name\" : \"{{store_name}}\",\r\n    \"store_address\" : \"{{store_address}}\",\r\n    \"store_postal_code\" : \"{{store_postal_code}}\",\r\n    \"store_city\" : \"{{store_city}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/stores/{{idToChange}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"stores",
+						"{{idToChange}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get changed store",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let idToChange = pm.environment.get(\"idToChange\");\r",
+							"let changedName = pm.environment.get(\"changedName\");\r",
+							"let response = pm.response.json();\r",
+							"\r",
+							"// Test with expect\r",
+							"pm.test(\"Expect store with id: \" + idToChange + \" to have correct db data\", () => {\r",
+							"    pm.expect(response.store_name).to.equal(changedName);\r",
+							"});\r",
+							"\r",
+							"// Set delete id for next test\r",
+							"pm.environment.set(\"idToDelete\", idToChange);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/api/stores/{{idToChange}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"stores",
+						"{{idToChange}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete a random store",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let idToDelete = pm.environment.get(\"idToDelete\");\r",
+							"\r",
+							"// Check for the right status code\r",
+							"pm.test(\"Check if DELETE was successful on id: \" + idToDelete, () => {\r",
+							"  pm.expect(pm.response.code).to.be.oneOf([200,202,204]);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Unpack new data\r",
+							"let allStores = JSON.parse(pm.environment.get(\"allStores\"));\r",
+							"// Pick out a random store to delete\r",
+							"let storeToDelete = allStores[Math.floor(Math.random() * allStores.length)];\r",
+							"// Set environment vars\r",
+							"pm.environment.set(\"idToDelete\", storeToDelete.id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/api/stores/{{idToDelete}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"stores",
+						"{{idToDelete}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get all current products",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Get response json obj\r",
+							"let arr = pm.response.json();\r",
+							"// Remove all id's\r",
+							"arr.forEach(x => { delete x.id });\r",
+							"// Keep the data to put back\r",
+							"pm.environment.set(\"productsData\", JSON.stringify(arr));\r",
+							"// Reset counter from previous tests so we can loop\r",
+							"pm.environment.set(\"counter\", \"0\");\r",
+							"\r",
+							"pm.test(\"Content type is json with utf-8 encoding\", () => {\r",
+							"  pm.expect(pm.response.headers.get(\"Content-Type\")).to.eql(\"application/json; charset=utf-8\");\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/api/products",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"products"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete all products",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test that request was okay\r",
+							"pm.test(\"Expect delete to take\", () => {\r",
+							"    pm.expect(pm.response.status).to.equal(\"OK\");\r",
+							"});\r",
+							"\r",
+							"// Debug: See if we keep the data\r",
+							"let productsData = JSON.parse(pm.environment.get(\"productsData\"));\r",
+							"console.log(productsData);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/api/products",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"products"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create new products",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Unpack env variables\r",
+							"let productsData = JSON.parse(pm.environment.get(\"productsData\"));\r",
+							"let counter = +pm.environment.get(\"counter\");\r",
+							"\r",
+							"// Set env vars for body\r",
+							"let productToAdd = productsData[counter];\r",
+							"for(let key in productToAdd) {\r",
+							"    let val = productToAdd[key];\r",
+							"    pm.environment.set(key, val);\r",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Unpack env\r",
+							"let productsData = JSON.parse(pm.environment.get(\"productsData\"));\r",
+							"let counter = +pm.environment.get(\"counter\");\r",
+							"\r",
+							"// Get response\r",
+							"let response = pm.response.json();\r",
+							"\r",
+							"// Check that we get the correct response\r",
+							"pm.test(\"Check that one change happened\", () => {\r",
+							"    pm.expect(response.changes).to.equal(1);\r",
+							"});\r",
+							"// Check for the right status code\r",
+							"pm.test(\"Check if POST was successful\", () => {\r",
+							"  pm.expect(pm.response.code).to.be.oneOf([200,201,202]);\r",
+							"});\r",
+							"pm.test(\"Check if we have an id to work with\", () => {\r",
+							"    pm.expect(response.lastInsertRowid).to.be.a(\"number\");\r",
+							"});\r",
+							"\r",
+							"// Save id of the last product created\r",
+							"productsData[counter].id = response.lastInsertRowid;\r",
+							"\r",
+							"// Increment\r",
+							"counter++;\r",
+							"\r",
+							"// Reset the env vars\r",
+							"pm.environment.set(\"productsData\", JSON.stringify(productsData));\r",
+							"pm.environment.set(\"counter\", counter);\r",
+							"\r",
+							"// Loop until we are out of products in the data\r",
+							"if(productsData[counter]){\r",
+							"    postman.setNextRequest(\"create new products\");\r",
+							"}\r",
+							"// Else we just set counter to zero to re-use it later\r",
+							"else {\r",
+							"    pm.environment.set(\"counter\", 0);\r",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"product_name\" : \"{{product_name}}\",\r\n    \"product_description\" : \"{{product_description}}\",\r\n    \"product_image\" : \"{{product_image}}\",\r\n    \"product_price\" : {{product_price}}\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/products",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"products"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get single product and test equality",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Unpack env\r",
+							"let productsData = JSON.parse(pm.environment.get(\"productsData\"));\r",
+							"let counter = +pm.environment.get(\"counter\");\r",
+							"\r",
+							"// Pick out product\r",
+							"let productToGet = productsData[counter];\r",
+							"\r",
+							"// Set the id of the product as an env variable to be used for the api\r",
+							"pm.environment.set(\"id\", productToGet.id);"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Unpack env\r",
+							"let productsData = JSON.parse(pm.environment.get(\"productsData\"));\r",
+							"let counter = +pm.environment.get(\"counter\");\r",
+							"\r",
+							"// Product\r",
+							"let productToGet = productsData[counter];\r",
+							"\r",
+							"// Get response\r",
+							"let response = pm.response.json();\r",
+							"\r",
+							"// Test db vs our stored data\r",
+							"pm.test(\"Store with id: \" + productToGet.id + \" is OK\", () => {\r",
+							"    pm.expect(response).to.deep.equal(productToGet);\r",
+							"});\r",
+							"\r",
+							"// Increment\r",
+							"counter++;\r",
+							"pm.environment.set(\"counter\", counter);\r",
+							"\r",
+							"// Loop until we are out of products\r",
+							"if(productsData[counter]) {\r",
+							"    postman.setNextRequest(\"get single product and test equality\");\r",
+							"}\r",
+							"else {\r",
+							"    pm.environment.set(\"counter\", 0);\r",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/api/products/{{id}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"products",
+						"{{id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get all products and test equality",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Unpack\r",
+							"let productsData = JSON.parse(pm.environment.get(\"productsData\"));\r",
+							"\r",
+							"// Get the response\r",
+							"let response = pm.response.json();\r",
+							"\r",
+							"// Compare the response with the data we have\r",
+							"pm.test(\"Get a list of all products, test if it's equal to db\", () => {\r",
+							"    pm.expect(response).to.deep.equal(productsData);\r",
+							"});\r",
+							"\r",
+							"// Passing on data from get\r",
+							"// Making new environment data\r",
+							"pm.environment.set(\"allProducts\", JSON.stringify(response));"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/api/products",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"products"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "edit random product",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Unpack new data\r",
+							"let allProducts = JSON.parse(pm.environment.get(\"allProducts\"));\r",
+							"// Pick out a random product to change\r",
+							"let productToChange = allProducts[Math.floor(Math.random() * allProducts.length)];\r",
+							"// Set environment vars\r",
+							"pm.environment.set(\"idToChange\", productToChange.id);\r",
+							"\r",
+							"// Generate noise\r",
+							"let gibberish = [...Array(30)].map(x => (~~(Math.random()*36)).toString(36)).join(\"\");\r",
+							"pm.environment.set(\"product_name\", gibberish);\r",
+							"gibberish = [...Array(200)].map(x => (~~(Math.random()*36)).toString(36)).join(\"\");\r",
+							"pm.environment.set(\"product_description\", gibberish);\r",
+							"gibberish = [...Array(30)].map(x => (~~(Math.random()*36)).toString(36)).join(\"\");\r",
+							"pm.environment.set(\"product_image\", gibberish);\r",
+							"let gibberishPrice = Math.floor(Math.random()*9000) + 1000;\r",
+							"pm.environment.set(\"product_price\", gibberishPrice);"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Get back name\r",
+							"let changedName = pm.environment.get(\"product_name\");\r",
+							"\r",
+							"// Response we got\r",
+							"let response = pm.response.json();\r",
+							"let idToChange = pm.environment.get(\"idToChange\");\r",
+							"\r",
+							"// Test with expect\r",
+							"pm.test(\"Expect changes to be equal to one\", () => {\r",
+							"    pm.expect(response.changes).to.equal(1);\r",
+							"});\r",
+							"\r",
+							"// Keep the product name for next test\r",
+							"pm.environment.set(\"changedName\", changedName);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"product_name\" : \"{{product_name}}\",\r\n    \"product_description\" : \"{{product_description}}\",\r\n    \"product_image\" : \"{{product_image}}\",\r\n    \"product_price\" : {{product_price}}\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/products/{{idToChange}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"products",
+						"{{idToChange}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get changed product",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let idToChange = pm.environment.get(\"idToChange\");\r",
+							"let changedName = pm.environment.get(\"changedName\");\r",
+							"let response = pm.response.json();\r",
+							"\r",
+							"// Test with expect\r",
+							"pm.test(\"Expect product with id: \" + idToChange + \" to have correct db data\", () => {\r",
+							"    pm.expect(response.product_name).to.equal(changedName);\r",
+							"});\r",
+							"\r",
+							"// Set delete id for next test\r",
+							"pm.environment.set(\"idToDelete\", idToChange);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/api/products/{{idToChange}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"products",
+						"{{idToChange}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete a random product",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let idToDelete = pm.environment.get(\"idToDelete\");\r",
+							"\r",
+							"let response = pm.response.json();\r",
+							"\r",
+							"// Check for the right status code among other things.\r",
+							"// Noted that parsing json removes some elements, thus using both pm.response and response or fail.\r",
+							"pm.test(\"Check response code of DELETE on id: \" + idToDelete, () => {\r",
+							"  pm.expect(pm.response.code).to.be.oneOf([200,202,204]);\r",
+							"});\r",
+							"pm.test(\"Check response status of DELETE on id: \" + idToDelete, () => {\r",
+							"  pm.expect(pm.response.status).to.equal(\"OK\");\r",
+							"});\r",
+							"pm.test(\"Check row changes on DELETE on id: \" + idToDelete, () => {\r",
+							"  pm.expect(response.changes).to.equal(1);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Unpack new data\r",
+							"let allProducts = JSON.parse(pm.environment.get(\"allProducts\"));\r",
+							"// Pick out a random store to delete\r",
+							"let productToDelete = allProducts[Math.floor(Math.random() * allProducts.length)];\r",
+							"// Set environment vars\r",
+							"pm.environment.set(\"idToDelete\", productToDelete.id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/api/products/{{idToDelete}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"products",
+						"{{idToDelete}}"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

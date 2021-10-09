@@ -1,0 +1,127 @@
+body {
+  background-color: #f0f0f0;
+}
+
+a {
+  text-decoration: none;
+  color: #000;
+}
+
+h1 {
+  font-family: 'Gluten', cursive;
+  font-size: 50px;
+}
+
+h3 {
+  font-family: 'Open Sans', sans-serif;
+}
+
+h2 {
+  font-family: 'Open Sans', sans-serif;
+}
+p {
+  font-family: 'Open Sans', sans-serif;
+}
+
+button {
+  font-family: 'Open Sans', sans-serif;
+  color: #000;
+  cursor: pointer;
+  background-color: #fff;
+}
+hr {
+  border-top: 3px dashed #000;
+}
+
+form {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+#editStockForm {
+  max-width: 300px;
+  margin: 0px;
+}
+
+input[type=text]#changeInput {
+  width: 30%
+}
+input[type="submit"]#changeInput {
+  float: right;
+}
+
+input[type=text], textarea {
+  width: 100%
+}
+input[type="submit"] {
+  float: right;
+}
+
+label {
+  font-family: 'Open Sans', sans-serif;
+  max-width: 100%;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.products {
+  margin-top: 20px;
+  max-width: 650px;
+  margin: 20px;
+}
+
+.singleProduct {
+  margin-top: 20px;
+  max-width: 650px;
+  margin: 20px;
+}
+
+.singleProductShow  {
+  font-family: 'Open Sans', sans-serif;
+  background-color: white;
+  padding: 20px;
+  margin: 10px 0;
+  border-radius: 5px;
+}
+
+.product {
+  font-family: 'Open Sans', sans-serif;
+  background-color: white;
+  padding: 20px;
+  cursor: pointer;
+  margin: 10px 0;
+  border-radius: 5px;
+}
+
+.stores {
+  margin-top: 20px;
+  max-width: 650px;
+  margin: 20px;
+}
+
+.store {
+  font-family: 'Open Sans', sans-serif;
+  background-color: white;
+  padding: 20px;
+  cursor: pointer;
+  margin: 10px 0;
+  border-radius: 5px;
+}
+
+.singleStore {
+  margin-top: 20px;
+  max-width: 650px;
+  margin: 20px;
+}
+
+.singleStoreShow {
+  font-family: 'Open Sans', sans-serif;
+  background-color: white;
+  padding: 20px;
+  margin: 10px 0;
+  border-radius: 5px;
+}
+
+#content {
+  max-width: 650px;
+}
